@@ -1,0 +1,19 @@
+.products-section {
+  padding-block: 24px 0;
+}
+
+.products-section__title {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@media (width <=520px) {
+  .products-section .container {
+    padding-inline: 0;
+  }
+
+  .products-section__title {
+    padding-inline: 20px;
+  }
+}

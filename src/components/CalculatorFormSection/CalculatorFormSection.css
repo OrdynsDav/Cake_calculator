@@ -1,0 +1,19 @@
+.calculator-form-section {
+  padding-block: 24px;
+}
+
+.calculator-form-section__title {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@media (width <=520px) {
+  .calculator-form-section .container {
+    padding-inline: 0;
+  }
+
+  .calculator-form-section__title {
+    padding-inline: 20px;
+  }
+}

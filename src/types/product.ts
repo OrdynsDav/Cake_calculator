@@ -1,0 +1,46 @@
+export type Unit = "г" | "кг" | "мл" | "л" | "шт";
+
+export type IngredientFormData = {
+  name: string;
+  amount: string;
+  unit: Unit;
+  pricePerUnit: string;
+};
+
+export type IngredientItem = {
+  id: string;
+  kind: "ingredient";
+  name: string;
+  amount: number;
+  unit: Unit;
+  pricePerUnit: number;
+};
+
+export type ProductRefItem = {
+  id: string;
+  kind: "product";
+  productId: string;
+  quantity: number;
+};
+
+export type CompositionItem = IngredientItem | ProductRefItem;
+
+export type Product = {
+  id: string;
+  name: string;
+  items: CompositionItem[];
+};
+
+export type AppState = {
+  products: Product[];
+  activeProductId: string | null;
+};
+
+export type CompositionRow = {
+  id: string;
+  kind: CompositionItem["kind"];
+  name: string;
+  amountLabel: string;
+  pricePerUnitLabel: string;
+  total: number;
+};

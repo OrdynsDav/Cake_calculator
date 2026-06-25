@@ -1,0 +1,20 @@
+.calculator-table-section {
+  padding-block: 24px 48px;
+}
+
+.calculator-table-section__title {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@media (width <=520px) {
+  .calculator-table-section .container {
+    padding-inline: 0;
+  }
+
+  .calculator-table-section__title {
+    padding-inline: 20px;
+    font-size: 20px;
+  }
+}

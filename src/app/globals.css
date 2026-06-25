@@ -1,0 +1,36 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-background-primary: #000;
+  --color-foreground-primary: #fff;
+  --color-surface: #111;
+  --color-border: rgba(255, 255, 255, 0.2);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background-color: var(--color-background-primary);
+  color: var(--color-foreground-primary);
+  font-family: var(--font-noto-sans);
+}
+
+main {
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}

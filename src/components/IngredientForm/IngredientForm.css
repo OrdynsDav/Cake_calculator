@@ -1,0 +1,39 @@
+.ingredient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+}
+
+.ingredient-form__row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 12px;
+}
+
+.ingredient-form__editing {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+
+.ingredient-form__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (width <=520px) {
+  .ingredient-form {
+    padding-inline: 20px;
+    border-radius: 0;
+  }
+}
+
+@media (width < 480px) {
+  .ingredient-form__row {
+    grid-template-columns: 1fr;
+  }
+}

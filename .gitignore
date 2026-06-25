@@ -2,8 +2,28 @@
 
 # dependencies
 /node_modules
+
+# Yarn Berry (https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+# !.yarn/cache  # uncomment for zero-installs
+
+.yarn/install-state.gz
+.yarn/build-state.yml
+.yarn/unplugged
+
+# Yarn PnP
+.pnp.*
 /.pnp
-.pnp.js
+
+# other package managers
+package-lock.json
+npm-shrinkwrap.json
+.yarn-integrity
 
 # testing
 /coverage
@@ -23,10 +43,13 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# local env files
-.env*.local
-.env
+# env files (can opt-in for committing if needed)
+.env*
+
+# local database
+/data/*.db
 
 # vercel
 .vercel

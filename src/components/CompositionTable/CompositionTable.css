@@ -1,0 +1,26 @@
+.composition-table__name {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.composition-table__name--editing {
+  font-weight: 600;
+}
+
+.composition-table__badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted, #9ca3af);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.composition-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
