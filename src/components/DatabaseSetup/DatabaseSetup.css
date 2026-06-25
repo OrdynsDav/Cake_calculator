@@ -1,0 +1,40 @@
+.database-setup {
+  padding-block: 48px 64px;
+}
+
+.database-setup__title {
+  margin-bottom: 12px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.database-setup__message {
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+
+.database-setup__steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.database-setup__steps a {
+  color: var(--color-foreground-primary);
+}
+
+.database-setup__steps code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (width <=520px) {
+  .database-setup .container {
+    padding-inline: 20px;
+  }
+}
