@@ -67,102 +67,98 @@ function mapProducts(
   }));
 }
 
-export function getAllProducts(): Product[] {
-  const db = getDb();
+export async function getAllProducts(): Promise<Product[]> {
+  const db = await getDb();
 
-  const productRows = db
+  const productRows = await db
     .select()
     .from(products)
-    .orderBy(asc(products.createdAt))
-    .all();
+    .orderBy(asc(products.createdAt));
 
-  const itemRows = db
+  const itemRows = await db
     .select()
     .from(compositionItems)
-    .orderBy(asc(compositionItems.sortOrder))
-    .all();
+    .orderBy(asc(compositionItems.sortOrder));
 
   return mapProducts(productRows, itemRows);
 }
 
-function getNextSortOrder(productId: string): number {
-  const db = getDb();
+async function getNextSortOrder(productId: string): Promise<number> {
+  const db = await getDb();
 
-  const [result] = db
+  const [result] = await db
     .select({ value: max(compositionItems.sortOrder) })
     .from(compositionItems)
-    .where(eq(compositionItems.productId, productId))
-    .all();
+    .where(eq(compositionItems.productId, productId));
 
   return (result?.value ?? -1) + 1;
 }
 
-export function createProduct(name: string): { products: Product[]; createdId: string } {
-  const db = getDb();
+export async function createProduct(
+  name: string,
+): Promise<{ products: Product[]; createdId: string }> {
+  const db = await getDb();
   const id = createId();
 
-  db.insert(products)
-    .values({
-      id,
-      name: name.trim(),
-      createdAt: new Date(),
-    })
-    .run();
+  await db.insert(products).values({
+    id,
+    name: name.trim(),
+    createdAt: new Date(),
+  });
 
-  return { products: getAllProducts(), createdId: id };
+  return { products: await getAllProducts(), createdId: id };
 }
 
-export function deleteProduct(id: string): Product[] {
-  const db = getDb();
+export async function deleteProduct(id: string): Promise<Product[]> {
+  const db = await getDb();
 
-  db.transaction((tx) => {
-    tx.delete(compositionItems)
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(compositionItems)
       .where(
         and(
           eq(compositionItems.kind, "product"),
           eq(compositionItems.refProductId, id),
         ),
-      )
-      .run();
+      );
 
-    tx.delete(products).where(eq(products.id, id)).run();
+    await tx.delete(products).where(eq(products.id, id));
   });
 
   return getAllProducts();
 }
 
-export function addIngredient(
+export async function addIngredient(
   productId: string,
   data: IngredientFormData,
-): Product[] {
-  const db = getDb();
+): Promise<Product[]> {
+  const db = await getDb();
   const item = createIngredientFromForm(data, createId());
 
-  db.insert(compositionItems)
-    .values({
-      id: item.id,
-      productId,
-      kind: "ingredient",
-      name: item.name,
-      amount: item.amount,
-      unit: item.unit,
-      pricePerUnit: item.pricePerUnit,
-      sortOrder: getNextSortOrder(productId),
-    })
-    .run();
+  await db.insert(compositionItems).values({
+    id: item.id,
+    productId,
+    kind: "ingredient",
+    name: item.name,
+    amount: item.amount,
+    unit: item.unit,
+    pricePerUnit: item.pricePerUnit,
+    sortOrder: await getNextSortOrder(productId),
+  });
 
   return getAllProducts();
 }
 
-export function updateIngredient(
+export async function updateIngredient(
   productId: string,
   itemId: string,
   data: IngredientFormData,
-): Product[] {
-  const db = getDb();
+): Promise<Product[]> {
+  const db = await getDb();
   const item = createIngredientFromForm(data, itemId);
 
-  db.update(compositionItems)
+  await db
+    .update(compositionItems)
     .set({
       name: item.name,
       amount: item.amount,
@@ -175,52 +171,51 @@ export function updateIngredient(
         eq(compositionItems.productId, productId),
         eq(compositionItems.kind, "ingredient"),
       ),
-    )
-    .run();
+    );
 
   return getAllProducts();
 }
 
-export function addProductRef(
+export async function addProductRef(
   productId: string,
   refProductId: string,
   quantity: number,
-): Product[] {
-  const db = getDb();
+): Promise<Product[]> {
+  const db = await getDb();
 
-  db.insert(compositionItems)
-    .values({
-      id: createId(),
-      productId,
-      kind: "product",
-      refProductId,
-      quantity,
-      sortOrder: getNextSortOrder(productId),
-    })
-    .run();
+  await db.insert(compositionItems).values({
+    id: createId(),
+    productId,
+    kind: "product",
+    refProductId,
+    quantity,
+    sortOrder: await getNextSortOrder(productId),
+  });
 
   return getAllProducts();
 }
 
-export function removeCompositionItem(
+export async function removeCompositionItem(
   productId: string,
   itemId: string,
-): Product[] {
-  const db = getDb();
+): Promise<Product[]> {
+  const db = await getDb();
 
-  db.delete(compositionItems)
+  await db
+    .delete(compositionItems)
     .where(
       and(
         eq(compositionItems.id, itemId),
         eq(compositionItems.productId, productId),
       ),
-    )
-    .run();
+    );
 
   return getAllProducts();
 }
 
-export function parseIngredientFormData(data: IngredientFormData): IngredientFormData {
+export function parseIngredientFormData(
+  data: IngredientFormData,
+): IngredientFormData {
   return {
     name: data.name.trim(),
     amount: String(parseNumber(data.amount)),

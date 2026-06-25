@@ -3,8 +3,8 @@ import { getAllProducts } from "@/lib/db/products";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const products = getAllProducts();
+export default async function Home() {
+  const products = await getAllProducts();
 
   return <Calculator initialProducts={products} />;
 }

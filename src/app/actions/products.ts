@@ -50,13 +50,13 @@ export async function createProductAction(
     throw new Error("Укажите название изделия");
   }
 
-  const result = createProductInDb(trimmed);
+  const result = await createProductInDb(trimmed);
   revalidate();
   return result;
 }
 
 export async function deleteProductAction(id: string): Promise<Product[]> {
-  const products = deleteProductFromDb(id);
+  const products = await deleteProductFromDb(id);
   revalidate();
   return products;
 }
@@ -65,7 +65,7 @@ export async function addIngredientAction(
   productId: string,
   data: IngredientFormData,
 ): Promise<Product[]> {
-  const products = addIngredientToDb(productId, parseIngredientInput(data));
+  const products = await addIngredientToDb(productId, parseIngredientInput(data));
   revalidate();
   return products;
 }
@@ -75,7 +75,7 @@ export async function updateIngredientAction(
   itemId: string,
   data: IngredientFormData,
 ): Promise<Product[]> {
-  const products = updateIngredientInDb(
+  const products = await updateIngredientInDb(
     productId,
     itemId,
     parseIngredientInput(data),
@@ -93,7 +93,7 @@ export async function addProductRefAction(
     throw new Error("Количество должно быть больше нуля");
   }
 
-  const products = addProductRefToDb(productId, refProductId, quantity);
+  const products = await addProductRefToDb(productId, refProductId, quantity);
   revalidate();
   return products;
 }
@@ -102,7 +102,7 @@ export async function removeItemAction(
   productId: string,
   itemId: string,
 ): Promise<Product[]> {
-  const products = removeCompositionItem(productId, itemId);
+  const products = await removeCompositionItem(productId, itemId);
   revalidate();
   return products;
 }
