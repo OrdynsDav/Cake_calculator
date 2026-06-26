@@ -3,11 +3,59 @@ import type {
   CompositionRow,
   IngredientItem,
   Product,
+  Unit,
 } from "@/types/product";
 import { formatPrice, parseNumber } from "@/lib/format";
+import { getProportionalCost } from "@/lib/units";
 
 export function getIngredientTotal(item: IngredientItem): number {
-  return item.amount * item.pricePerUnit;
+  if (
+    item.packagePrice != null &&
+    item.packageAmount != null &&
+    item.packageUnit != null
+  ) {
+    return getProportionalCost(
+      item.amount,
+      item.unit,
+      item.packagePrice,
+      item.packageAmount,
+      item.packageUnit,
+    );
+  }
+
+  if (item.pricePerUnit != null) {
+    return item.amount * item.pricePerUnit;
+  }
+
+  return 0;
+}
+
+export function formatCatalogPriceLabel(ingredient: {
+  packagePrice: number;
+  packageAmount: number;
+  packageUnit: Unit;
+}): string {
+  return `${formatPrice(ingredient.packagePrice)} / ${ingredient.packageAmount} ${ingredient.packageUnit}`;
+}
+
+export function formatIngredientPriceLabel(item: IngredientItem): string {
+  if (
+    item.packagePrice != null &&
+    item.packageAmount != null &&
+    item.packageUnit != null
+  ) {
+    return formatCatalogPriceLabel({
+      packagePrice: item.packagePrice,
+      packageAmount: item.packageAmount,
+      packageUnit: item.packageUnit,
+    });
+  }
+
+  if (item.pricePerUnit != null) {
+    return `${formatPrice(item.pricePerUnit)} / 1 ${item.unit}`;
+  }
+
+  return "—";
 }
 
 export function getProductTotal(
@@ -49,7 +97,7 @@ export function buildCompositionRows(
         kind: item.kind,
         name: item.name,
         amountLabel: `${item.amount} ${item.unit}`,
-        pricePerUnitLabel: formatPrice(item.pricePerUnit),
+        pricePerUnitLabel: formatIngredientPriceLabel(item),
         total,
       };
     }
@@ -81,6 +129,9 @@ export function createIngredientFromForm(
     name: data.name.trim(),
     amount: parseNumber(data.amount),
     unit: data.unit,
-    pricePerUnit: parseNumber(data.pricePerUnit),
+    packagePrice: parseNumber(data.packagePrice),
+    packageAmount: parseNumber(data.packageAmount),
+    packageUnit: data.packageUnit,
+    catalogIngredientId: data.catalogIngredientId,
   };
 }

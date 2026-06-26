@@ -17,6 +17,7 @@ const UNITS: Unit[] = ["г", "кг", "мл", "л", "шт"];
 
 function revalidate() {
   revalidatePath("/");
+  revalidatePath("/ingredients");
 }
 
 function isUnit(value: string): value is Unit {
@@ -26,6 +27,10 @@ function isUnit(value: string): value is Unit {
 function parseIngredientInput(data: IngredientFormData): IngredientFormData {
   if (!isUnit(data.unit)) {
     throw new Error("Некорректная единица измерения");
+  }
+
+  if (!isUnit(data.packageUnit)) {
+    throw new Error("Некорректная единица измерения для стоимости");
   }
 
   const parsed = parseIngredientFormData({ ...data, unit: data.unit });

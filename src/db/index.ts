@@ -3,6 +3,7 @@ import path from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
+import { getDatabaseAuthToken, getDatabaseUrl } from "@/db/config";
 import * as schema from "@/db/schema";
 
 const globalForDb = globalThis as unknown as {
@@ -12,35 +13,15 @@ const globalForDb = globalThis as unknown as {
 };
 
 function getClientConfig() {
-  const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
-  const tursoToken = process.env.TURSO_AUTH_TOKEN?.trim();
+  const url = getDatabaseUrl();
+  const authToken = getDatabaseAuthToken();
 
-  if (tursoUrl) {
-    return {
-      url: tursoUrl,
-      authToken: tursoToken,
-    };
-  }
-
-  if (process.env.VERCEL) {
-    throw new Error(
-      "TURSO_DATABASE_URL и TURSO_AUTH_TOKEN должны быть заданы в переменных окружения Vercel",
-    );
-  }
-
-  const configured = process.env.DATABASE_URL?.trim();
-  const databasePath = configured
-    ? configured.startsWith("file:")
-      ? configured
-      : `file:${configured}`
-    : `file:${path.join(process.cwd(), "data", "sqlite.db")}`;
-
-  if (databasePath.startsWith("file:")) {
-    const filePath = databasePath.slice("file:".length);
+  if (url.startsWith("file:")) {
+    const filePath = url.slice("file:".length);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
   }
 
-  return { url: databasePath };
+  return authToken ? { url, authToken } : { url };
 }
 
 function createDatabase() {

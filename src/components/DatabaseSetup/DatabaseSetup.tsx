@@ -13,16 +13,18 @@ export default function DatabaseSetup({ message }: DatabaseSetupProps) {
         <p className="database-setup__message">{message}</p>
         <ol className="database-setup__steps">
           <li>
-            Создайте базу на{" "}
-            <a href="https://turso.tech" target="_blank" rel="noreferrer">
-              turso.tech
-            </a>
+            Для локальной разработки создайте файл <code>.env</code> с{" "}
+            <code>DATABASE_URL=file:./data/sqlite.db</code>
           </li>
           <li>
-            Добавьте в Vercel переменные{" "}
-            <code>TURSO_DATABASE_URL</code> и <code>TURSO_AUTH_TOKEN</code>
+            Для продакшена на Vercel создайте базу на{" "}
+            <a href="https://turso.tech" target="_blank" rel="noreferrer">
+              turso.tech
+            </a>{" "}
+            и добавьте переменные <code>TURSO_DATABASE_URL</code> и{" "}
+            <code>TURSO_AUTH_TOKEN</code>
           </li>
-          <li>Выполните <code>yarn db:migrate</code> и передеплойте проект</li>
+          <li>Выполните <code>yarn db:migrate</code> и перезапустите сервер</li>
         </ol>
       </Container>
     </section>

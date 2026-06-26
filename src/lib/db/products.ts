@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { compositionItems, products } from "@/db/schema";
 import { createId, parseNumber } from "@/lib/format";
 import { createIngredientFromForm } from "@/lib/product";
+import { areUnitsCompatible } from "@/lib/units";
 import type {
   CompositionItem,
   IngredientFormData,
@@ -14,12 +15,30 @@ type CompositionItemRow = typeof compositionItems.$inferSelect;
 
 function mapCompositionItem(row: CompositionItemRow): CompositionItem | null {
   if (row.kind === "ingredient") {
-    if (
-      row.name == null ||
-      row.amount == null ||
-      row.unit == null ||
-      row.pricePerUnit == null
-    ) {
+    if (row.name == null || row.amount == null || row.unit == null) {
+      return null;
+    }
+
+    const hasPackagePrice =
+      row.packagePrice != null &&
+      row.packageAmount != null &&
+      row.packageUnit != null;
+
+    if (hasPackagePrice) {
+      return {
+        id: row.id,
+        kind: "ingredient",
+        name: row.name,
+        amount: row.amount,
+        unit: row.unit as Unit,
+        packagePrice: row.packagePrice ?? undefined,
+        packageAmount: row.packageAmount ?? undefined,
+        packageUnit: (row.packageUnit as Unit) ?? undefined,
+        catalogIngredientId: row.catalogIngredientId ?? undefined,
+      };
+    }
+
+    if (row.pricePerUnit == null) {
       return null;
     }
 
@@ -30,6 +49,7 @@ function mapCompositionItem(row: CompositionItemRow): CompositionItem | null {
       amount: row.amount,
       unit: row.unit as Unit,
       pricePerUnit: row.pricePerUnit,
+      catalogIngredientId: row.catalogIngredientId ?? undefined,
     };
   }
 
@@ -142,7 +162,11 @@ export async function addIngredient(
     name: item.name,
     amount: item.amount,
     unit: item.unit,
-    pricePerUnit: item.pricePerUnit,
+    packagePrice: item.packagePrice,
+    packageAmount: item.packageAmount,
+    packageUnit: item.packageUnit,
+    catalogIngredientId: item.catalogIngredientId ?? null,
+    pricePerUnit: null,
     sortOrder: await getNextSortOrder(productId),
   });
 
@@ -163,7 +187,11 @@ export async function updateIngredient(
       name: item.name,
       amount: item.amount,
       unit: item.unit,
-      pricePerUnit: item.pricePerUnit,
+      packagePrice: item.packagePrice,
+      packageAmount: item.packageAmount,
+      packageUnit: item.packageUnit,
+      catalogIngredientId: item.catalogIngredientId ?? null,
+      pricePerUnit: null,
     })
     .where(
       and(
@@ -216,10 +244,27 @@ export async function removeCompositionItem(
 export function parseIngredientFormData(
   data: IngredientFormData,
 ): IngredientFormData {
+  const unit = data.unit;
+  const packageUnit = data.packageUnit;
+  const packageAmount = parseNumber(data.packageAmount);
+
+  if (!areUnitsCompatible(unit, packageUnit)) {
+    throw new Error(
+      "Единицы измерения ингредиента и покупки должны быть одного типа (масса, объём или штуки)",
+    );
+  }
+
+  if (packageAmount <= 0) {
+    throw new Error("Укажите количество для расчёта стоимости больше нуля");
+  }
+
   return {
     name: data.name.trim(),
     amount: String(parseNumber(data.amount)),
-    unit: data.unit,
-    pricePerUnit: String(parseNumber(data.pricePerUnit)),
+    unit,
+    packagePrice: String(parseNumber(data.packagePrice)),
+    packageAmount: String(packageAmount),
+    packageUnit,
+    catalogIngredientId: data.catalogIngredientId?.trim() || undefined,
   };
 }

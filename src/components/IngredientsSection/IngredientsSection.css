@@ -1,0 +1,27 @@
+.ingredients-section {
+  padding-block: 24px 0;
+}
+
+.ingredients-section__title {
+  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ingredients-section__description {
+  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@media (width <=520px) {
+  .ingredients-section .container {
+    padding-inline: 0;
+  }
+
+  .ingredients-section__title,
+  .ingredients-section__description {
+    padding-inline: 20px;
+  }
+}

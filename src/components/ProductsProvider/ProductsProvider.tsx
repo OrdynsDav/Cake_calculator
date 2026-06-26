@@ -16,6 +16,15 @@ import {
   removeItemAction,
   updateIngredientAction,
 } from "@/app/actions/products";
+import {
+  createCatalogIngredientAction,
+  deleteCatalogIngredientAction,
+  updateCatalogIngredientAction,
+} from "@/app/actions/ingredients";
+import type {
+  CatalogIngredient,
+  CatalogIngredientFormData,
+} from "@/types/ingredient";
 import type {
   CompositionRow,
   IngredientFormData,
@@ -29,15 +38,26 @@ import {
 
 type ProductsContextValue = {
   products: Product[];
+  catalogIngredients: CatalogIngredient[];
   activeProduct: Product | null;
   compositionRows: CompositionRow[];
   total: number;
   editingItemId: string | null;
+  editingCatalogId: string | null;
   availableProductRefs: Product[];
   isSaving: boolean;
   createProduct: (name: string) => Promise<void>;
   selectProduct: (id: string) => void;
   deleteProduct: (id: string) => Promise<void>;
+  createCatalogIngredient: (data: CatalogIngredientFormData) => Promise<void>;
+  updateCatalogIngredient: (
+    id: string,
+    data: CatalogIngredientFormData,
+  ) => Promise<void>;
+  deleteCatalogIngredient: (id: string) => Promise<void>;
+  startEditingCatalog: (id: string) => void;
+  cancelEditingCatalog: () => void;
+  getEditingCatalogIngredient: () => CatalogIngredient | null;
   addIngredient: (data: IngredientFormData) => Promise<void>;
   updateIngredient: (itemId: string, data: IngredientFormData) => Promise<void>;
   addProductRef: (productId: string, quantity: number) => Promise<void>;
@@ -85,17 +105,25 @@ function wouldCreateCycle(
 type ProductsProviderProps = {
   children: ReactNode;
   initialProducts: Product[];
+  initialIngredients: CatalogIngredient[];
 };
 
 export function ProductsProvider({
   children,
   initialProducts,
+  initialIngredients,
 }: ProductsProviderProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [catalogIngredients, setCatalogIngredients] = useState(
+    initialIngredients,
+  );
   const [activeProductId, setActiveProductId] = useState<string | null>(
     initialProducts[0]?.id ?? null,
   );
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingCatalogId, setEditingCatalogId] = useState<string | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const productsById = useMemo(
@@ -173,6 +201,69 @@ export function ProductsProvider({
     setActiveProductId(id);
     setEditingItemId(null);
   }, []);
+
+  const createCatalogIngredient = useCallback(
+    async (data: CatalogIngredientFormData) => {
+      const nextIngredients = await runMutation(() =>
+        createCatalogIngredientAction(data),
+      );
+
+      if (nextIngredients) {
+        setCatalogIngredients(nextIngredients);
+        setEditingCatalogId(null);
+      }
+    },
+    [runMutation],
+  );
+
+  const updateCatalogIngredient = useCallback(
+    async (id: string, data: CatalogIngredientFormData) => {
+      const nextIngredients = await runMutation(() =>
+        updateCatalogIngredientAction(id, data),
+      );
+
+      if (nextIngredients) {
+        setCatalogIngredients(nextIngredients);
+        setEditingCatalogId(null);
+      }
+    },
+    [runMutation],
+  );
+
+  const deleteCatalogIngredient = useCallback(
+    async (id: string) => {
+      const nextIngredients = await runMutation(() =>
+        deleteCatalogIngredientAction(id),
+      );
+
+      if (!nextIngredients) return;
+
+      setEditingCatalogId((currentId) =>
+        currentId === id ? null : currentId,
+      );
+      setCatalogIngredients(nextIngredients);
+    },
+    [runMutation],
+  );
+
+  const startEditingCatalog = useCallback((id: string) => {
+    setEditingCatalogId(id);
+    setEditingItemId(null);
+  }, []);
+
+  const cancelEditingCatalog = useCallback(() => {
+    setEditingCatalogId(null);
+  }, []);
+
+  const getEditingCatalogIngredient = useCallback((): CatalogIngredient | null => {
+    if (!editingCatalogId) return null;
+
+    return (
+      catalogIngredients.find(
+        (ingredient) => ingredient.id === editingCatalogId,
+      ) ?? null
+    );
+  }, [catalogIngredients, editingCatalogId]);
 
   const deleteProduct = useCallback(
     async (id: string) => {
@@ -254,6 +345,7 @@ export function ProductsProvider({
 
   const startEditing = useCallback((itemId: string) => {
     setEditingItemId(itemId);
+    setEditingCatalogId(null);
   }, []);
 
   const cancelEditing = useCallback(() => {
@@ -273,15 +365,23 @@ export function ProductsProvider({
   const value = useMemo(
     () => ({
       products,
+      catalogIngredients,
       activeProduct,
       compositionRows,
       total,
       editingItemId,
+      editingCatalogId,
       availableProductRefs,
       isSaving,
       createProduct,
       selectProduct,
       deleteProduct,
+      createCatalogIngredient,
+      updateCatalogIngredient,
+      deleteCatalogIngredient,
+      startEditingCatalog,
+      cancelEditingCatalog,
+      getEditingCatalogIngredient,
       addIngredient,
       updateIngredient,
       addProductRef,
@@ -292,15 +392,23 @@ export function ProductsProvider({
     }),
     [
       products,
+      catalogIngredients,
       activeProduct,
       compositionRows,
       total,
       editingItemId,
+      editingCatalogId,
       availableProductRefs,
       isSaving,
       createProduct,
       selectProduct,
       deleteProduct,
+      createCatalogIngredient,
+      updateCatalogIngredient,
+      deleteCatalogIngredient,
+      startEditingCatalog,
+      cancelEditingCatalog,
+      getEditingCatalogIngredient,
       addIngredient,
       updateIngredient,
       addProductRef,

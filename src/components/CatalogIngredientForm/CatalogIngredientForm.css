@@ -1,0 +1,62 @@
+.catalog-ingredient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+}
+
+.catalog-ingredient-form__editing {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+
+.catalog-ingredient-form__price-group {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.catalog-ingredient-form__price-legend {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.catalog-ingredient-form__price-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr 120px;
+  gap: 12px;
+  align-items: end;
+}
+
+.catalog-ingredient-form__price-separator {
+  padding-bottom: 10px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+
+.catalog-ingredient-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (width <=520px) {
+  .catalog-ingredient-form {
+    padding-inline: 20px;
+    border-radius: 0;
+  }
+}
+
+@media (width < 480px) {
+  .catalog-ingredient-form__price-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .catalog-ingredient-form__price-separator {
+    display: none;
+  }
+}

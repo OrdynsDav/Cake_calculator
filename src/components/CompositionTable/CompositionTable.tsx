@@ -56,9 +56,9 @@ function CompositionTable() {
       },
       {
         accessorKey: "pricePerUnitLabel",
-        header: "Цена/ед.",
+        header: "Стоимость",
         meta: {
-          mobileLabel: "Цена/ед.",
+          mobileLabel: "Стоимость",
         },
         cell: ({ row }) => (
           <span className="data-table__td--numeric">

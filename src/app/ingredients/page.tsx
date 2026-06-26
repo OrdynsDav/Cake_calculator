@@ -1,23 +1,18 @@
-import Calculator from "@/components/Calculator/Calculator";
+import IngredientsPage from "@/components/IngredientsPage/IngredientsPage";
 import DatabaseSetup from "@/components/DatabaseSetup/DatabaseSetup";
 import { getAllIngredients } from "@/lib/db/ingredients";
-import { getAllProducts } from "@/lib/db/products";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  try {
-    const [products, ingredients] = await Promise.all([
-      getAllProducts(),
-      getAllIngredients(),
-    ]);
+export const metadata = {
+  title: "Ингредиенты — Калькулятор",
+};
 
-    return (
-      <Calculator
-        initialProducts={products}
-        initialIngredients={ingredients}
-      />
-    );
+export default async function IngredientsRoute() {
+  try {
+    const ingredients = await getAllIngredients();
+
+    return <IngredientsPage initialIngredients={ingredients} />;
   } catch (error) {
     const message =
       error instanceof Error

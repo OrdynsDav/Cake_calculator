@@ -4,7 +4,10 @@ export type IngredientFormData = {
   name: string;
   amount: string;
   unit: Unit;
-  pricePerUnit: string;
+  packagePrice: string;
+  packageAmount: string;
+  packageUnit: Unit;
+  catalogIngredientId?: string;
 };
 
 export type IngredientItem = {
@@ -13,7 +16,12 @@ export type IngredientItem = {
   name: string;
   amount: number;
   unit: Unit;
-  pricePerUnit: number;
+  packagePrice?: number;
+  packageAmount?: number;
+  packageUnit?: Unit;
+  catalogIngredientId?: string;
+  /** @deprecated legacy: цена за 1 ед. изм. */
+  pricePerUnit?: number;
 };
 
 export type ProductRefItem = {
