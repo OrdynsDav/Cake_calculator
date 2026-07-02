@@ -3,6 +3,8 @@ import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const products = sqliteTable("products", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  type: text("type", { enum: ["product", "dessert"] }).notNull().default("product"),
+  outputGrams: real("output_grams").notNull().default(1000),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
@@ -34,5 +36,6 @@ export const compositionItems = sqliteTable("composition_items", {
   ),
   refProductId: text("ref_product_id"),
   quantity: real("quantity"),
+  amountGrams: real("amount_grams"),
   sortOrder: integer("sort_order").notNull().default(0),
 });

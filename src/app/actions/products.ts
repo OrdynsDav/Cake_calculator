@@ -6,17 +6,20 @@ import {
   addProductRef as addProductRefToDb,
   createProduct as createProductInDb,
   deleteProduct as deleteProductFromDb,
+  getAllDesserts,
   getAllProducts,
   parseIngredientFormData,
   removeCompositionItem,
+  updateProductOutputGrams as updateProductOutputGramsInDb,
   updateIngredient as updateIngredientInDb,
 } from "@/lib/db/products";
-import type { IngredientFormData, Product, Unit } from "@/types/product";
+import type { IngredientFormData, Product, ProductType, Unit } from "@/types/product";
 
 const UNITS: Unit[] = ["г", "кг", "мл", "л", "шт"];
 
 function revalidate() {
   revalidatePath("/");
+  revalidatePath("/desserts");
   revalidatePath("/ingredients");
 }
 
@@ -46,22 +49,51 @@ export async function fetchProductsAction(): Promise<Product[]> {
   return getAllProducts();
 }
 
+export async function fetchDessertsAction(): Promise<Product[]> {
+  return getAllDesserts();
+}
+
 export async function createProductAction(
   name: string,
+  type: ProductType = "product",
+  outputGrams?: number,
 ): Promise<{ products: Product[]; createdId: string }> {
   const trimmed = name.trim();
 
   if (!trimmed) {
-    throw new Error("Укажите название изделия");
+    throw new Error(type === "dessert" ? "Укажите название десерта" : "Укажите название изделия");
   }
 
-  const result = await createProductInDb(trimmed);
+  const normalizedOutputGrams = outputGrams ?? 1000;
+
+  if (normalizedOutputGrams <= 0) {
+    throw new Error("Укажите выход изделия больше нуля");
+  }
+
+  const result = await createProductInDb(trimmed, type, normalizedOutputGrams);
   revalidate();
   return result;
 }
 
-export async function deleteProductAction(id: string): Promise<Product[]> {
-  const products = await deleteProductFromDb(id);
+export async function deleteProductAction(
+  id: string,
+  type: ProductType = "product",
+): Promise<Product[]> {
+  const products = await deleteProductFromDb(id, type);
+  revalidate();
+  return products;
+}
+
+export async function updateProductOutputGramsAction(
+  id: string,
+  outputGrams: number,
+  type: ProductType = "product",
+): Promise<Product[]> {
+  if (outputGrams <= 0) {
+    throw new Error("Укажите выход изделия больше нуля");
+  }
+
+  const products = await updateProductOutputGramsInDb(id, outputGrams, type);
   revalidate();
   return products;
 }
@@ -69,8 +101,13 @@ export async function deleteProductAction(id: string): Promise<Product[]> {
 export async function addIngredientAction(
   productId: string,
   data: IngredientFormData,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
-  const products = await addIngredientToDb(productId, parseIngredientInput(data));
+  const products = await addIngredientToDb(
+    productId,
+    parseIngredientInput(data),
+    productType,
+  );
   revalidate();
   return products;
 }
@@ -79,11 +116,13 @@ export async function updateIngredientAction(
   productId: string,
   itemId: string,
   data: IngredientFormData,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
   const products = await updateIngredientInDb(
     productId,
     itemId,
     parseIngredientInput(data),
+    productType,
   );
   revalidate();
   return products;
@@ -92,13 +131,23 @@ export async function updateIngredientAction(
 export async function addProductRefAction(
   productId: string,
   refProductId: string,
-  quantity: number,
+  amount: number,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
-  if (quantity <= 0) {
-    throw new Error("Количество должно быть больше нуля");
+  if (amount <= 0) {
+    throw new Error(
+      productType === "dessert"
+        ? "Граммовка должна быть больше нуля"
+        : "Количество должно быть больше нуля",
+    );
   }
 
-  const products = await addProductRefToDb(productId, refProductId, quantity);
+  const products = await addProductRefToDb(
+    productId,
+    refProductId,
+    amount,
+    productType,
+  );
   revalidate();
   return products;
 }
@@ -106,8 +155,9 @@ export async function addProductRefAction(
 export async function removeItemAction(
   productId: string,
   itemId: string,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
-  const products = await removeCompositionItem(productId, itemId);
+  const products = await removeCompositionItem(productId, itemId, productType);
   revalidate();
   return products;
 }

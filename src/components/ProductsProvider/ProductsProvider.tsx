@@ -14,6 +14,7 @@ import {
   createProductAction,
   deleteProductAction,
   removeItemAction,
+  updateProductOutputGramsAction,
   updateIngredientAction,
 } from "@/app/actions/products";
 import {
@@ -30,6 +31,8 @@ import type {
   IngredientFormData,
   IngredientItem,
   Product,
+  ProductReferenceMode,
+  ProductType,
 } from "@/types/product";
 import {
   buildCompositionRows,
@@ -45,8 +48,11 @@ type ProductsContextValue = {
   editingItemId: string | null;
   editingCatalogId: string | null;
   availableProductRefs: Product[];
+  productType: ProductType;
+  productReferenceMode: ProductReferenceMode;
   isSaving: boolean;
-  createProduct: (name: string) => Promise<void>;
+  createProduct: (name: string, outputGrams: number) => Promise<void>;
+  updateActiveProductOutputGrams: (outputGrams: number) => Promise<void>;
   selectProduct: (id: string) => void;
   deleteProduct: (id: string) => Promise<void>;
   createCatalogIngredient: (data: CatalogIngredientFormData) => Promise<void>;
@@ -60,7 +66,7 @@ type ProductsContextValue = {
   getEditingCatalogIngredient: () => CatalogIngredient | null;
   addIngredient: (data: IngredientFormData) => Promise<void>;
   updateIngredient: (itemId: string, data: IngredientFormData) => Promise<void>;
-  addProductRef: (productId: string, quantity: number) => Promise<void>;
+  addProductRef: (productId: string, amount: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   startEditing: (itemId: string) => void;
   cancelEditing: () => void;
@@ -106,12 +112,16 @@ type ProductsProviderProps = {
   children: ReactNode;
   initialProducts: Product[];
   initialIngredients: CatalogIngredient[];
+  productType?: ProductType;
+  availableProductRefs?: Product[];
 };
 
 export function ProductsProvider({
   children,
   initialProducts,
   initialIngredients,
+  productType = "product",
+  availableProductRefs: initialAvailableProductRefs,
 }: ProductsProviderProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [catalogIngredients, setCatalogIngredients] = useState(
@@ -125,11 +135,24 @@ export function ProductsProvider({
     null,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const productReferenceMode: ProductReferenceMode =
+    productType === "dessert" ? "grams" : "count";
 
-  const productsById = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
-    [products],
-  );
+  const referenceProducts = initialAvailableProductRefs ?? products;
+
+  const productsById = useMemo(() => {
+    const combined = new Map<string, Product>();
+
+    for (const product of referenceProducts) {
+      combined.set(product.id, product);
+    }
+
+    for (const product of products) {
+      combined.set(product.id, product);
+    }
+
+    return combined;
+  }, [referenceProducts, products]);
 
   const activeProduct = useMemo(
     () => products.find((product) => product.id === activeProductId) ?? null,
@@ -159,12 +182,12 @@ export function ProductsProvider({
   const availableProductRefs = useMemo(() => {
     if (!activeProduct) return [];
 
-    return products.filter(
+    return referenceProducts.filter(
       (product) =>
         product.id !== activeProduct.id &&
         !wouldCreateCycle(activeProduct.id, product.id, productsById),
     );
-  }, [activeProduct, products, productsById]);
+  }, [activeProduct, productsById, referenceProducts]);
 
   const runMutation = useCallback(
     async <T,>(mutation: () => Promise<T>): Promise<T | undefined> => {
@@ -183,24 +206,41 @@ export function ProductsProvider({
   );
 
   const createProduct = useCallback(
-    async (name: string) => {
+    async (name: string, outputGrams: number) => {
       const trimmed = name.trim();
       if (!trimmed) return;
 
-      const result = await runMutation(() => createProductAction(trimmed));
+      const result = await runMutation(() =>
+        createProductAction(trimmed, productType, outputGrams),
+      );
       if (!result) return;
 
       setProducts(result.products);
       setActiveProductId(result.createdId);
       setEditingItemId(null);
     },
-    [runMutation],
+    [productType, runMutation],
   );
 
   const selectProduct = useCallback((id: string) => {
     setActiveProductId(id);
     setEditingItemId(null);
   }, []);
+
+  const updateActiveProductOutputGrams = useCallback(
+    async (outputGrams: number) => {
+      if (!activeProductId || outputGrams <= 0) return;
+
+      const nextProducts = await runMutation(() =>
+        updateProductOutputGramsAction(activeProductId, outputGrams, productType),
+      );
+
+      if (nextProducts) {
+        setProducts(nextProducts);
+      }
+    },
+    [activeProductId, productType, runMutation],
+  );
 
   const createCatalogIngredient = useCallback(
     async (data: CatalogIngredientFormData) => {
@@ -267,7 +307,9 @@ export function ProductsProvider({
 
   const deleteProduct = useCallback(
     async (id: string) => {
-      const nextProducts = await runMutation(() => deleteProductAction(id));
+      const nextProducts = await runMutation(() =>
+        deleteProductAction(id, productType),
+      );
       if (!nextProducts) return;
 
       setEditingItemId(null);
@@ -276,7 +318,7 @@ export function ProductsProvider({
         activeId === id ? (nextProducts[0]?.id ?? null) : activeId,
       );
     },
-    [runMutation],
+    [productType, runMutation],
   );
 
   const addIngredient = useCallback(
@@ -284,14 +326,14 @@ export function ProductsProvider({
       if (!activeProductId) return;
 
       const nextProducts = await runMutation(() =>
-        addIngredientAction(activeProductId, data),
+        addIngredientAction(activeProductId, data, productType),
       );
 
       if (nextProducts) {
         setProducts(nextProducts);
       }
     },
-    [activeProductId, runMutation],
+    [activeProductId, productType, runMutation],
   );
 
   const updateIngredient = useCallback(
@@ -299,7 +341,7 @@ export function ProductsProvider({
       if (!activeProductId) return;
 
       const nextProducts = await runMutation(() =>
-        updateIngredientAction(activeProductId, itemId, data),
+        updateIngredientAction(activeProductId, itemId, data, productType),
       );
 
       if (nextProducts) {
@@ -307,22 +349,22 @@ export function ProductsProvider({
         setEditingItemId(null);
       }
     },
-    [activeProductId, runMutation],
+    [activeProductId, productType, runMutation],
   );
 
   const addProductRef = useCallback(
-    async (productId: string, quantity: number) => {
-      if (!activeProductId || quantity <= 0) return;
+    async (productId: string, amount: number) => {
+      if (!activeProductId || amount <= 0) return;
 
       const nextProducts = await runMutation(() =>
-        addProductRefAction(activeProductId, productId, quantity),
+        addProductRefAction(activeProductId, productId, amount, productType),
       );
 
       if (nextProducts) {
         setProducts(nextProducts);
       }
     },
-    [activeProductId, runMutation],
+    [activeProductId, productType, runMutation],
   );
 
   const removeItem = useCallback(
@@ -330,7 +372,7 @@ export function ProductsProvider({
       if (!activeProductId) return;
 
       const nextProducts = await runMutation(() =>
-        removeItemAction(activeProductId, itemId),
+        removeItemAction(activeProductId, itemId, productType),
       );
 
       if (nextProducts) {
@@ -340,7 +382,7 @@ export function ProductsProvider({
         );
       }
     },
-    [activeProductId, runMutation],
+    [activeProductId, productType, runMutation],
   );
 
   const startEditing = useCallback((itemId: string) => {
@@ -372,8 +414,11 @@ export function ProductsProvider({
       editingItemId,
       editingCatalogId,
       availableProductRefs,
+      productType,
+      productReferenceMode,
       isSaving,
       createProduct,
+      updateActiveProductOutputGrams,
       selectProduct,
       deleteProduct,
       createCatalogIngredient,
@@ -399,8 +444,11 @@ export function ProductsProvider({
       editingItemId,
       editingCatalogId,
       availableProductRefs,
+      productType,
+      productReferenceMode,
       isSaving,
       createProduct,
+      updateActiveProductOutputGrams,
       selectProduct,
       deleteProduct,
       createCatalogIngredient,

@@ -1,0 +1,24 @@
+.product-output-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.product-output-form .field {
+  min-width: 220px;
+  max-width: 280px;
+}
+
+@media (width <=520px) {
+  .product-output-form {
+    padding-inline: 20px;
+  }
+
+  .product-output-form .field {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+}

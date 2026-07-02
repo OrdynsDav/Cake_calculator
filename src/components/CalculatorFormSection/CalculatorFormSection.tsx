@@ -3,6 +3,7 @@
 import Container from "@/shared/container/Container";
 import IngredientForm from "@/components/IngredientForm/IngredientForm";
 import ProductRefForm from "@/components/ProductRefForm/ProductRefForm";
+import ProductOutputForm from "@/components/ProductOutputForm/ProductOutputForm";
 import { useProducts } from "@/components/ProductsProvider/ProductsProvider";
 import "./CalculatorFormSection.css";
 
@@ -17,6 +18,7 @@ export default function CalculatorFormSection() {
         <h2 className="calculator-form-section__title">
           Состав: {activeProduct.name}
         </h2>
+        <ProductOutputForm />
         <IngredientForm />
         <ProductRefForm />
       </Container>

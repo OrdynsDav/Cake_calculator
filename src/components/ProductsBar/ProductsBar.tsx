@@ -14,7 +14,19 @@ type ProductToDelete = {
   name: string;
 };
 
-export default function ProductsBar() {
+type ProductsBarProps = {
+  entityName?: string;
+  createLabel?: string;
+  showList?: boolean;
+  listRegionId?: string;
+};
+
+export default function ProductsBar({
+  entityName = "изделие",
+  createLabel = "Создать",
+  showList = true,
+  listRegionId,
+}: ProductsBarProps) {
   const {
     products,
     activeProduct,
@@ -32,9 +44,14 @@ export default function ProductsBar() {
     event.preventDefault();
 
     const form = event.currentTarget;
-    const name = String(new FormData(form).get("productName") ?? "");
+    const formData = new FormData(form);
+    const name = String(formData.get("productName") ?? "");
+    const outputGrams =
+      entityName === "десерт"
+        ? 1000
+        : Number(formData.get("outputGrams") ?? 1000);
 
-    await createProduct(name);
+    await createProduct(name, outputGrams);
     setIsCreating(false);
   }
 
@@ -61,43 +78,53 @@ export default function ProductsBar() {
     <>
       <div className="products-bar">
         {products.length > 0 && (
-          <div className="products-bar__list" role="tablist" aria-label="Изделия">
-            {products.map((product) => {
-              const isActive = product.id === activeProduct?.id;
+          <div
+            id={listRegionId}
+            className={
+              showList
+                ? "products-bar__list-region products-bar__list-region--expanded"
+                : "products-bar__list-region"
+            }
+            aria-hidden={!showList}
+          >
+            <div className="products-bar__list" role="tablist" aria-label={createLabel}>
+              {products.map((product) => {
+                const isActive = product.id === activeProduct?.id;
 
-              return (
-                <div
-                  key={product.id}
-                  className={
-                    isActive
-                      ? "products-bar__item products-bar__item--active"
-                      : "products-bar__item"
-                  }
-                >
-                  <Button
-                    type="button"
-                    variant={isActive ? "default" : "outline"}
-                    className="products-bar__item-button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => selectProduct(product.id)}
-                    disabled={isSaving}
+                return (
+                  <div
+                    key={product.id}
+                    className={
+                      isActive
+                        ? "products-bar__item products-bar__item--active"
+                        : "products-bar__item"
+                    }
                   >
-                    {product.name}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="icon"
-                    className="products-bar__delete"
-                    onClick={() => handleDeleteClick(product.id, product.name)}
-                    aria-label={`Удалить ${product.name}`}
-                    disabled={isSaving}
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              );
-            })}
+                    <Button
+                      type="button"
+                      variant={isActive ? "default" : "outline"}
+                      className="products-bar__item-button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => selectProduct(product.id)}
+                      disabled={isSaving || !showList}
+                    >
+                      {product.name}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="icon"
+                      className="products-bar__delete"
+                      onClick={() => handleDeleteClick(product.id, product.name)}
+                      aria-label={`Удалить ${product.name}`}
+                      disabled={isSaving || !showList}
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -107,16 +134,34 @@ export default function ProductsBar() {
               <Input
                 id="product-name"
                 name="productName"
-                placeholder="Торт, бисквит, крем..."
+                placeholder={
+                  entityName === "десерт"
+                    ? "Трайфл, капкейк, пирожное..."
+                    : "Торт, бисквит, крем..."
+                }
                 required
                 autoComplete="off"
                 autoFocus
                 disabled={isSaving}
               />
             </Field>
+            {entityName !== "десерт" && (
+              <Field label="Выход, г" htmlFor="product-output-grams">
+                <Input
+                  id="product-output-grams"
+                  name="outputGrams"
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  defaultValue="1000"
+                  required
+                  disabled={isSaving}
+                />
+              </Field>
+            )}
             <div className="products-bar__create-actions">
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Создание..." : "Создать"}
+                {isSaving ? "Создание..." : createLabel}
               </Button>
               <Button
                 type="button"
@@ -137,21 +182,22 @@ export default function ProductsBar() {
             disabled={isSaving}
           >
             <Plus size={16} />
-            Создать
+            {createLabel}
           </Button>
         )}
 
         {products.length === 0 && !isCreating && (
           <p className="products-bar__hint">
-            Создайте изделие — торт, бисквит или что угодно — и добавьте в него
-            состав
+            {entityName === "десерт"
+              ? "Создайте десерт и добавьте в него готовые изделия"
+              : "Создайте изделие — торт, бисквит или что угодно — и добавьте в него состав"}
           </p>
         )}
       </div>
 
       <Modal
         open={productToDelete !== null}
-        title="Удалить изделие?"
+        title={`Удалить ${entityName}?`}
         onClose={handleCancelDelete}
       >
         <p className="modal__text">

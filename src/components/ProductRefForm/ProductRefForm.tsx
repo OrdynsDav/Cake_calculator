@@ -9,7 +9,12 @@ import { useProducts } from "@/components/ProductsProvider/ProductsProvider";
 import "./ProductRefForm.css";
 
 export default function ProductRefForm() {
-  const { availableProductRefs, addProductRef, isSaving } = useProducts();
+  const {
+    availableProductRefs,
+    addProductRef,
+    isSaving,
+    productReferenceMode,
+  } = useProducts();
   const productIdRef = useRef("");
   const [formResetKey, setFormResetKey] = useState(0);
 
@@ -29,12 +34,15 @@ export default function ProductRefForm() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const quantity = Number(formData.get("quantity") ?? 1);
+    const amount = Number(
+      formData.get(productReferenceMode === "grams" ? "amountGrams" : "quantity") ??
+      (productReferenceMode === "grams" ? 100 : 1),
+    );
     const productId = productIdRef.current || defaultProductId;
 
-    if (!productId || quantity <= 0) return;
+    if (!productId || amount <= 0) return;
 
-    await addProductRef(productId, quantity);
+    await addProductRef(productId, amount);
     form.reset();
     productIdRef.current = defaultProductId;
     setFormResetKey((key) => key + 1);
@@ -46,7 +54,11 @@ export default function ProductRefForm() {
       className="product-ref-form"
       onSubmit={handleSubmit}
     >
-      <p className="product-ref-form__title">Добавить готовое изделие</p>
+      <p className="product-ref-form__title">
+        {productReferenceMode === "grams"
+          ? "Добавить готовое изделие по граммовке"
+          : "Добавить готовое изделие"}
+      </p>
 
       <div className="product-ref-form__row">
         <Field label="Изделие" htmlFor="product-ref-select">
@@ -61,14 +73,25 @@ export default function ProductRefForm() {
           />
         </Field>
 
-        <Field label="Кол-во" htmlFor="product-ref-quantity">
+        <Field
+          label={productReferenceMode === "grams" ? "Граммовка" : "Кол-во"}
+          htmlFor={
+            productReferenceMode === "grams"
+              ? "product-ref-amount-grams"
+              : "product-ref-quantity"
+          }
+        >
           <Input
-            id="product-ref-quantity"
-            name="quantity"
+            id={
+              productReferenceMode === "grams"
+                ? "product-ref-amount-grams"
+                : "product-ref-quantity"
+            }
+            name={productReferenceMode === "grams" ? "amountGrams" : "quantity"}
             type="number"
-            min="1"
-            step="1"
-            defaultValue="1"
+            min={productReferenceMode === "grams" ? "0.01" : "1"}
+            step={productReferenceMode === "grams" ? "any" : "1"}
+            defaultValue={productReferenceMode === "grams" ? "100" : "1"}
             required
             disabled={isSaving}
           />
@@ -76,7 +99,11 @@ export default function ProductRefForm() {
       </div>
 
       <Button type="submit" disabled={isSaving}>
-        {isSaving ? "Добавление..." : "Добавить изделие"}
+        {isSaving
+          ? "Добавление..."
+          : productReferenceMode === "grams"
+            ? "Добавить в десерт"
+            : "Добавить изделие"}
       </Button>
     </form>
   );

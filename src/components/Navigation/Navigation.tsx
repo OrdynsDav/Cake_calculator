@@ -16,6 +16,8 @@ function getLinkClassName(isActive: boolean): string {
 
 export default function Navigation() {
     const pathname = usePathname();
+    const isProductsPage = pathname === "/";
+    const isDessertsPage = pathname === "/desserts";
     const isIngredientsPage = pathname === "/ingredients";
 
     return (
@@ -23,10 +25,17 @@ export default function Navigation() {
             <nav className="nav" aria-label="Навигация">
                 <Link
                     href="/"
-                    className={getLinkClassName(!isIngredientsPage)}
-                    aria-current={!isIngredientsPage ? "page" : undefined}
+                    className={getLinkClassName(isProductsPage)}
+                    aria-current={isProductsPage ? "page" : undefined}
                 >
                     Изделия
+                </Link>
+                <Link
+                    href="/desserts"
+                    className={getLinkClassName(isDessertsPage)}
+                    aria-current={isDessertsPage ? "page" : undefined}
+                >
+                    Десерты
                 </Link>
                 <Link
                     href="/ingredients"

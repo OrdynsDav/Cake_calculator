@@ -58,6 +58,17 @@ export function formatIngredientPriceLabel(item: IngredientItem): string {
   return "—";
 }
 
+export function getProductPricePerGram(
+  productId: string,
+  productsById: Map<string, Product>,
+  stack: string[] = [],
+): number {
+  const product = productsById.get(productId);
+  if (!product || product.outputGrams <= 0) return 0;
+
+  return getProductTotal(productId, productsById, stack) / product.outputGrams;
+}
+
 export function getProductTotal(
   productId: string,
   productsById: Map<string, Product>,
@@ -79,7 +90,17 @@ export function getProductTotal(
       [...stack, productId],
     );
 
-    return sum + nestedTotal * item.quantity;
+    if (item.amountGrams != null) {
+      const nestedPricePerGram = getProductPricePerGram(
+        item.productId,
+        productsById,
+        [...stack, productId],
+      );
+
+      return sum + nestedPricePerGram * item.amountGrams;
+    }
+
+    return sum + nestedTotal * (item.quantity ?? 0);
   }, 0);
 }
 
@@ -106,13 +127,30 @@ export function buildCompositionRows(
     const unitTotal = getProductTotal(item.productId, productsById, [
       ownerProductId,
     ]);
-    const total = unitTotal * item.quantity;
+
+    if (item.amountGrams != null) {
+      const pricePerGram = getProductPricePerGram(item.productId, productsById, [
+        ownerProductId,
+      ]);
+      const total = pricePerGram * item.amountGrams;
+
+      return {
+        id: item.id,
+        kind: item.kind,
+        name: nestedProduct?.name ?? "Удалённое изделие",
+        amountLabel: `${item.amountGrams} г`,
+        pricePerUnitLabel: `${formatPrice(pricePerGram)} / 1 г`,
+        total,
+      };
+    }
+
+    const total = unitTotal * (item.quantity ?? 0);
 
     return {
       id: item.id,
       kind: item.kind,
       name: nestedProduct?.name ?? "Удалённое изделие",
-      amountLabel: `${item.quantity} шт`,
+      amountLabel: `${item.quantity ?? 0} шт`,
       pricePerUnitLabel: formatPrice(unitTotal),
       total,
     };

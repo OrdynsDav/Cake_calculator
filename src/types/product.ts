@@ -1,5 +1,9 @@
 export type Unit = "г" | "кг" | "мл" | "л" | "шт";
 
+export type ProductType = "product" | "dessert";
+
+export type ProductReferenceMode = "count" | "grams";
+
 export type IngredientFormData = {
   name: string;
   amount: string;
@@ -28,7 +32,8 @@ export type ProductRefItem = {
   id: string;
   kind: "product";
   productId: string;
-  quantity: number;
+  quantity?: number;
+  amountGrams?: number;
 };
 
 export type CompositionItem = IngredientItem | ProductRefItem;
@@ -36,6 +41,8 @@ export type CompositionItem = IngredientItem | ProductRefItem;
 export type Product = {
   id: string;
   name: string;
+  type: ProductType;
+  outputGrams: number;
   items: CompositionItem[];
 };
 

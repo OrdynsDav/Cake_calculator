@@ -18,8 +18,9 @@ export default function Calculator({
     <ProductsProvider
       initialProducts={initialProducts}
       initialIngredients={initialIngredients}
+      productType="product"
     >
-      <ProductsSection />
+      <ProductsSection title="Изделия" entityName="изделие" createLabel="Создать" />
       <CalculatorFormSection />
       <CalculatorTableSection />
     </ProductsProvider>

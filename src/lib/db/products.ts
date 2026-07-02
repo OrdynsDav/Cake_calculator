@@ -8,6 +8,7 @@ import type {
   CompositionItem,
   IngredientFormData,
   Product,
+  ProductType,
   Unit,
 } from "@/types/product";
 
@@ -53,7 +54,10 @@ function mapCompositionItem(row: CompositionItemRow): CompositionItem | null {
     };
   }
 
-  if (row.refProductId == null || row.quantity == null) {
+  if (
+    row.refProductId == null ||
+    (row.quantity == null && row.amountGrams == null)
+  ) {
     return null;
   }
 
@@ -61,7 +65,8 @@ function mapCompositionItem(row: CompositionItemRow): CompositionItem | null {
     id: row.id,
     kind: "product",
     productId: row.refProductId,
-    quantity: row.quantity,
+    quantity: row.quantity ?? undefined,
+    amountGrams: row.amountGrams ?? undefined,
   };
 }
 
@@ -83,16 +88,19 @@ function mapProducts(
   return productRows.map((product) => ({
     id: product.id,
     name: product.name,
+    type: product.type as ProductType,
+    outputGrams: product.outputGrams,
     items: itemsByProductId.get(product.id) ?? [],
   }));
 }
 
-export async function getAllProducts(): Promise<Product[]> {
+export async function getProductsByType(type: ProductType): Promise<Product[]> {
   const db = await getDb();
 
   const productRows = await db
     .select()
     .from(products)
+    .where(eq(products.type, type))
     .orderBy(asc(products.createdAt));
 
   const itemRows = await db
@@ -101,6 +109,14 @@ export async function getAllProducts(): Promise<Product[]> {
     .orderBy(asc(compositionItems.sortOrder));
 
   return mapProducts(productRows, itemRows);
+}
+
+export async function getAllProducts(): Promise<Product[]> {
+  return getProductsByType("product");
+}
+
+export async function getAllDesserts(): Promise<Product[]> {
+  return getProductsByType("dessert");
 }
 
 async function getNextSortOrder(productId: string): Promise<number> {
@@ -116,6 +132,8 @@ async function getNextSortOrder(productId: string): Promise<number> {
 
 export async function createProduct(
   name: string,
+  type: ProductType = "product",
+  outputGrams = 1000,
 ): Promise<{ products: Product[]; createdId: string }> {
   const db = await getDb();
   const id = createId();
@@ -123,13 +141,18 @@ export async function createProduct(
   await db.insert(products).values({
     id,
     name: name.trim(),
+    type,
+    outputGrams,
     createdAt: new Date(),
   });
 
-  return { products: await getAllProducts(), createdId: id };
+  return { products: await getProductsByType(type), createdId: id };
 }
 
-export async function deleteProduct(id: string): Promise<Product[]> {
+export async function deleteProduct(
+  id: string,
+  type: ProductType = "product",
+): Promise<Product[]> {
   const db = await getDb();
 
   await db.transaction(async (tx) => {
@@ -145,12 +168,28 @@ export async function deleteProduct(id: string): Promise<Product[]> {
     await tx.delete(products).where(eq(products.id, id));
   });
 
-  return getAllProducts();
+  return getProductsByType(type);
+}
+
+export async function updateProductOutputGrams(
+  id: string,
+  outputGrams: number,
+  type: ProductType = "product",
+): Promise<Product[]> {
+  const db = await getDb();
+
+  await db
+    .update(products)
+    .set({ outputGrams })
+    .where(and(eq(products.id, id), eq(products.type, type)));
+
+  return getProductsByType(type);
 }
 
 export async function addIngredient(
   productId: string,
   data: IngredientFormData,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
   const db = await getDb();
   const item = createIngredientFromForm(data, createId());
@@ -170,13 +209,14 @@ export async function addIngredient(
     sortOrder: await getNextSortOrder(productId),
   });
 
-  return getAllProducts();
+  return getProductsByType(productType);
 }
 
 export async function updateIngredient(
   productId: string,
   itemId: string,
   data: IngredientFormData,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
   const db = await getDb();
   const item = createIngredientFromForm(data, itemId);
@@ -201,13 +241,14 @@ export async function updateIngredient(
       ),
     );
 
-  return getAllProducts();
+  return getProductsByType(productType);
 }
 
 export async function addProductRef(
   productId: string,
   refProductId: string,
-  quantity: number,
+  amount: number,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
   const db = await getDb();
 
@@ -216,16 +257,18 @@ export async function addProductRef(
     productId,
     kind: "product",
     refProductId,
-    quantity,
+    quantity: productType === "dessert" ? null : amount,
+    amountGrams: productType === "dessert" ? amount : null,
     sortOrder: await getNextSortOrder(productId),
   });
 
-  return getAllProducts();
+  return getProductsByType(productType);
 }
 
 export async function removeCompositionItem(
   productId: string,
   itemId: string,
+  productType: ProductType = "product",
 ): Promise<Product[]> {
   const db = await getDb();
 
@@ -238,7 +281,7 @@ export async function removeCompositionItem(
       ),
     );
 
-  return getAllProducts();
+  return getProductsByType(productType);
 }
 
 export function parseIngredientFormData(

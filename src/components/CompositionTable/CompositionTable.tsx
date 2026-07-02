@@ -16,6 +16,7 @@ function CompositionTable() {
     total,
     editingItemId,
     isSaving,
+    productReferenceMode,
     removeItem,
     startEditing,
   } = useProducts();
@@ -45,9 +46,9 @@ function CompositionTable() {
       },
       {
         accessorKey: "amountLabel",
-        header: "Кол-во",
+        header: productReferenceMode === "grams" ? "Граммовка" : "Кол-во",
         meta: {
-          mobileLabel: "Кол-во",
+          mobileLabel: productReferenceMode === "grams" ? "Граммовка" : "Кол-во",
         },
         cell: ({ row }) => (
           <span className="data-table__td--numeric">
@@ -112,7 +113,7 @@ function CompositionTable() {
         ),
       },
     ],
-    [editingItemId, isSaving, removeItem, startEditing],
+    [editingItemId, isSaving, productReferenceMode, removeItem, startEditing],
   );
 
   const footer = useMemo(

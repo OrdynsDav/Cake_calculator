@@ -4,7 +4,24 @@
   gap: 16px;
 }
 
+.products-bar__list-region {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.28s ease,
+    opacity 0.2s ease,
+    margin-bottom 0.28s ease;
+}
+
+.products-bar__list-region--expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 .products-bar__list {
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
