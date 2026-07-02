@@ -10,6 +10,7 @@ const globalForDb = globalThis as unknown as {
   client?: Client;
   db?: ReturnType<typeof drizzle<typeof schema>>;
   migrated?: boolean;
+  connectionKey?: string;
 };
 
 function getClientConfig() {
@@ -22,6 +23,11 @@ function getClientConfig() {
   }
 
   return authToken ? { url, authToken } : { url };
+}
+
+function getConnectionKey() {
+  const { url, authToken } = getClientConfig();
+  return JSON.stringify({ url, authToken: authToken ?? null });
 }
 
 function createDatabase() {
@@ -39,6 +45,15 @@ async function ensureMigrated(db: ReturnType<typeof drizzle<typeof schema>>) {
 }
 
 export async function getDb() {
+  const connectionKey = getConnectionKey();
+
+  if (globalForDb.connectionKey !== connectionKey) {
+    globalForDb.client = undefined;
+    globalForDb.db = undefined;
+    globalForDb.migrated = undefined;
+    globalForDb.connectionKey = connectionKey;
+  }
+
   if (!globalForDb.db) {
     const { client, db } = createDatabase();
     globalForDb.client = client;

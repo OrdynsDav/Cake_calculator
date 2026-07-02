@@ -6,9 +6,34 @@ const DEFAULT_LOCAL_DATABASE_URL = `file:${path.join(
   "sqlite.db",
 )}`;
 
+type DatabaseMode = "local" | "remote";
+
+function getManualDatabaseMode(): DatabaseMode | undefined {
+  const mode = process.env.DATABASE_MODE?.trim().toLowerCase();
+
+  if (mode === "local" || mode === "remote") {
+    return mode;
+  }
+
+  if (process.env.USE_REMOTE_DB === "true") {
+    return "remote";
+  }
+
+  if (process.env.USE_REMOTE_DB === "false") {
+    return "local";
+  }
+
+  return undefined;
+}
+
 export function shouldUseLocalDatabase(): boolean {
+  const manualMode = getManualDatabaseMode();
+
+  if (manualMode) {
+    return manualMode === "local";
+  }
+
   if (process.env.VERCEL) return false;
-  if (process.env.USE_REMOTE_DB === "true") return false;
   return true;
 }
 
@@ -18,7 +43,7 @@ export function getDatabaseUrl(): string {
 
     if (!tursoUrl) {
       throw new Error(
-        "TURSO_DATABASE_URL и TURSO_AUTH_TOKEN должны быть заданы в переменных окружения Vercel",
+        "Для удаленной базы данных задайте TURSO_DATABASE_URL и TURSO_AUTH_TOKEN",
       );
     }
 

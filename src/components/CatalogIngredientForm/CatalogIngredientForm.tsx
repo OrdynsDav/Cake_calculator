@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useProducts } from "@/components/ProductsProvider/ProductsProvider";
 import Button from "@/shared/button/Button";
 import Field from "@/shared/field/Field";
 import Input from "@/shared/input/Input";
@@ -25,6 +26,7 @@ export default function CatalogIngredientForm({
   onSubmit,
   onCancel,
 }: CatalogIngredientFormProps) {
+  const { isSaving } = useProducts();
   const formRef = useRef<HTMLFormElement>(null);
   const packageUnitRef = useRef<Unit>(editingIngredient?.packageUnit ?? "кг");
   const [formResetKey, setFormResetKey] = useState(0);
@@ -83,6 +85,7 @@ export default function CatalogIngredientForm({
           defaultValue={editingIngredient?.name ?? ""}
           required
           autoComplete="off"
+          disabled={isSaving}
         />
       </Field>
 
@@ -106,6 +109,7 @@ export default function CatalogIngredientForm({
                   : undefined
               }
               required
+              disabled={isSaving}
             />
           </Field>
 
@@ -125,6 +129,7 @@ export default function CatalogIngredientForm({
                   : undefined
               }
               required
+              disabled={isSaving}
             />
           </Field>
 
@@ -133,6 +138,7 @@ export default function CatalogIngredientForm({
               id="catalog-ingredient-package-unit"
               defaultValue={editingIngredient?.packageUnit ?? "кг"}
               options={UNIT_OPTIONS}
+              disabled={isSaving}
               onValueChange={(unit) => {
                 packageUnitRef.current = unit as Unit;
               }}
@@ -142,9 +148,22 @@ export default function CatalogIngredientForm({
       </fieldset>
 
       <div className="catalog-ingredient-form__actions">
-        <Button type="submit">{isEditing ? "Сохранить" : "Добавить"}</Button>
+        <Button type="submit" disabled={isSaving}>
+          {isSaving
+            ? isEditing
+              ? "Сохранение..."
+              : "Добавление..."
+            : isEditing
+              ? "Сохранить"
+              : "Добавить"}
+        </Button>
         {isEditing && onCancel && (
-          <Button type="button" variant="outline" onClick={handleCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
             Отмена
           </Button>
         )}

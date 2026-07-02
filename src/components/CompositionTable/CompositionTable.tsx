@@ -15,6 +15,7 @@ function CompositionTable() {
     compositionRows,
     total,
     editingItemId,
+    isSaving,
     removeItem,
     startEditing,
   } = useProducts();
@@ -93,6 +94,7 @@ function CompositionTable() {
                 onClick={() => startEditing(row.original.id)}
                 aria-label={`Редактировать ${row.original.name}`}
                 aria-pressed={row.original.id === editingItemId}
+                disabled={isSaving}
               >
                 <Pencil size={16} />
               </Button>
@@ -102,6 +104,7 @@ function CompositionTable() {
               variant="icon"
               onClick={() => removeItem(row.original.id)}
               aria-label={`Удалить ${row.original.name}`}
+              disabled={isSaving}
             >
               <X size={16} />
             </Button>
@@ -109,7 +112,7 @@ function CompositionTable() {
         ),
       },
     ],
-    [editingItemId, removeItem, startEditing],
+    [editingItemId, isSaving, removeItem, startEditing],
   );
 
   const footer = useMemo(

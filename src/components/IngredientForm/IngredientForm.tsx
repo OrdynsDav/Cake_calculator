@@ -106,6 +106,7 @@ export default function IngredientForm() {
   const {
     catalogIngredients,
     editingItemId,
+    isSaving,
     addIngredient,
     updateIngredient,
     cancelEditing,
@@ -256,6 +257,7 @@ export default function IngredientForm() {
             value={selectedCatalogId}
             options={catalogOptions}
             onValueChange={handleCatalogChange}
+            disabled={isSaving}
           />
         </Field>
       )}
@@ -268,6 +270,7 @@ export default function IngredientForm() {
           defaultValue={formDefaults.name}
           required
           autoComplete="off"
+          disabled={isSaving}
         />
       </Field>
 
@@ -282,6 +285,7 @@ export default function IngredientForm() {
             placeholder="0"
             defaultValue={formDefaults.amount || undefined}
             required
+            disabled={isSaving}
           />
         </Field>
 
@@ -290,6 +294,7 @@ export default function IngredientForm() {
             id="ingredient-unit"
             defaultValue={formDefaults.unit}
             options={UNIT_OPTIONS}
+            disabled={isSaving}
             onValueChange={(unit) => {
               unitRef.current = unit as Unit;
             }}
@@ -315,6 +320,7 @@ export default function IngredientForm() {
               placeholder="400"
               defaultValue={formDefaults.packagePrice || undefined}
               required
+              disabled={isSaving}
             />
           </Field>
 
@@ -330,6 +336,7 @@ export default function IngredientForm() {
               placeholder="2"
               defaultValue={formDefaults.packageAmount || undefined}
               required
+              disabled={isSaving}
             />
           </Field>
 
@@ -338,6 +345,7 @@ export default function IngredientForm() {
               id="ingredient-package-unit"
               defaultValue={formDefaults.packageUnit}
               options={UNIT_OPTIONS}
+              disabled={isSaving}
               onValueChange={(unit) => {
                 packageUnitRef.current = unit as Unit;
               }}
@@ -347,9 +355,22 @@ export default function IngredientForm() {
       </fieldset>
 
       <div className="ingredient-form__actions">
-        <Button type="submit">{isEditing ? "Сохранить" : "Добавить"}</Button>
+        <Button type="submit" disabled={isSaving}>
+          {isSaving
+            ? isEditing
+              ? "Сохранение..."
+              : "Добавление..."
+            : isEditing
+              ? "Сохранить"
+              : "Добавить"}
+        </Button>
         {isEditing && (
-          <Button type="button" variant="outline" onClick={handleCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
             Отмена
           </Button>
         )}

@@ -14,6 +14,7 @@ export default function IngredientsBar() {
   const {
     catalogIngredients,
     editingCatalogId,
+    isSaving,
     createCatalogIngredient,
     updateCatalogIngredient,
     deleteCatalogIngredient,
@@ -53,6 +54,27 @@ export default function IngredientsBar() {
   return (
     <>
       <div className="ingredients-bar">
+      {showForm ? (
+          <CatalogIngredientForm
+            editingIngredient={editingIngredient}
+            onSubmit={editingIngredient ? handleUpdate : handleCreate}
+            onCancel={handleCancelForm}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            className="ingredients-bar__create-button"
+            onClick={() => {
+              cancelEditingCatalog();
+              setIsCreating(true);
+            }}
+            disabled={isSaving}
+          >
+            <Plus size={16} />
+            Добавить ингредиент
+          </Button>
+        )}
         {catalogIngredients.length > 0 && (
           <ul className="ingredients-bar__list">
             {catalogIngredients.map((ingredient) => (
@@ -73,6 +95,7 @@ export default function IngredientsBar() {
                     }}
                     aria-label={`Редактировать ${ingredient.name}`}
                     aria-pressed={editingCatalogId === ingredient.id}
+                    disabled={isSaving}
                   >
                     <Pencil size={16} />
                   </Button>
@@ -81,6 +104,7 @@ export default function IngredientsBar() {
                     variant="icon"
                     onClick={() => setIngredientToDelete(ingredient)}
                     aria-label={`Удалить ${ingredient.name}`}
+                    disabled={isSaving}
                   >
                     <X size={16} />
                   </Button>
@@ -88,27 +112,6 @@ export default function IngredientsBar() {
               </li>
             ))}
           </ul>
-        )}
-
-        {showForm ? (
-          <CatalogIngredientForm
-            editingIngredient={editingIngredient}
-            onSubmit={editingIngredient ? handleUpdate : handleCreate}
-            onCancel={handleCancelForm}
-          />
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            className="ingredients-bar__create-button"
-            onClick={() => {
-              cancelEditingCatalog();
-              setIsCreating(true);
-            }}
-          >
-            <Plus size={16} />
-            Добавить ингредиент
-          </Button>
         )}
 
         {catalogIngredients.length === 0 && !showForm && (
@@ -129,13 +132,14 @@ export default function IngredientsBar() {
           составах изделий сохранятся.
         </p>
         <div className="modal__actions">
-          <Button type="button" onClick={handleConfirmDelete}>
-            Удалить
+          <Button type="button" onClick={handleConfirmDelete} disabled={isSaving}>
+            {isSaving ? "Удаление..." : "Удалить"}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => setIngredientToDelete(null)}
+            disabled={isSaving}
           >
             Отмена
           </Button>

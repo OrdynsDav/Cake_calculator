@@ -15,8 +15,14 @@ type ProductToDelete = {
 };
 
 export default function ProductsBar() {
-  const { products, activeProduct, createProduct, selectProduct, deleteProduct } =
-    useProducts();
+  const {
+    products,
+    activeProduct,
+    createProduct,
+    selectProduct,
+    deleteProduct,
+    isSaving,
+  } = useProducts();
   const [isCreating, setIsCreating] = useState(false);
   const [productToDelete, setProductToDelete] = useState<ProductToDelete | null>(
     null,
@@ -75,6 +81,7 @@ export default function ProductsBar() {
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => selectProduct(product.id)}
+                    disabled={isSaving}
                   >
                     {product.name}
                   </Button>
@@ -84,6 +91,7 @@ export default function ProductsBar() {
                     className="products-bar__delete"
                     onClick={() => handleDeleteClick(product.id, product.name)}
                     aria-label={`Удалить ${product.name}`}
+                    disabled={isSaving}
                   >
                     <X size={16} />
                   </Button>
@@ -103,11 +111,19 @@ export default function ProductsBar() {
                 required
                 autoComplete="off"
                 autoFocus
+                disabled={isSaving}
               />
             </Field>
             <div className="products-bar__create-actions">
-              <Button type="submit">Создать</Button>
-              <Button type="button" variant="outline" onClick={handleCancelCreate}>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Создание..." : "Создать"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelCreate}
+                disabled={isSaving}
+              >
                 Отмена
               </Button>
             </div>
@@ -118,6 +134,7 @@ export default function ProductsBar() {
             variant="outline"
             className="products-bar__create-button"
             onClick={() => setIsCreating(true)}
+            disabled={isSaving}
           >
             <Plus size={16} />
             Создать
@@ -141,10 +158,15 @@ export default function ProductsBar() {
           «{productToDelete?.name}» будет удален и убран из всех составов.
         </p>
         <div className="modal__actions">
-          <Button type="button" onClick={handleConfirmDelete}>
-            Удалить
+          <Button type="button" onClick={handleConfirmDelete} disabled={isSaving}>
+            {isSaving ? "Удаление..." : "Удалить"}
           </Button>
-          <Button type="button" variant="outline" onClick={handleCancelDelete}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancelDelete}
+            disabled={isSaving}
+          >
             Отмена
           </Button>
         </div>

@@ -9,7 +9,7 @@ import { useProducts } from "@/components/ProductsProvider/ProductsProvider";
 import "./ProductRefForm.css";
 
 export default function ProductRefForm() {
-  const { availableProductRefs, addProductRef } = useProducts();
+  const { availableProductRefs, addProductRef, isSaving } = useProducts();
   const productIdRef = useRef("");
   const [formResetKey, setFormResetKey] = useState(0);
 
@@ -54,6 +54,7 @@ export default function ProductRefForm() {
             id="product-ref-select"
             defaultValue={defaultProductId}
             options={options}
+            disabled={isSaving}
             onValueChange={(value) => {
               productIdRef.current = value;
             }}
@@ -69,11 +70,14 @@ export default function ProductRefForm() {
             step="1"
             defaultValue="1"
             required
+            disabled={isSaving}
           />
         </Field>
       </div>
 
-      <Button type="submit">Добавить изделие</Button>
+      <Button type="submit" disabled={isSaving}>
+        {isSaving ? "Добавление..." : "Добавить изделие"}
+      </Button>
     </form>
   );
 }

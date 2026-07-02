@@ -18,6 +18,7 @@ type SelectProps = {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 };
 
 export default function Select({
@@ -28,6 +29,7 @@ export default function Select({
   options,
   placeholder = "Выберите...",
   className = "",
+  disabled = false,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -60,6 +62,8 @@ export default function Select({
   }
 
   function handleTriggerPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (disabled) return;
+
     event.preventDefault();
     event.stopPropagation();
 
@@ -68,17 +72,25 @@ export default function Select({
   }
 
   function handleTriggerClick(event: MouseEvent<HTMLButtonElement>) {
+    if (disabled) return;
+
     event.preventDefault();
     event.stopPropagation();
   }
 
   return (
-    <RadixSelect.Root {...rootProps} open={open} onOpenChange={handleOpenChange}>
+    <RadixSelect.Root
+      {...rootProps}
+      open={open}
+      onOpenChange={handleOpenChange}
+      disabled={disabled}
+    >
       <RadixSelect.Trigger
         id={id}
         className={["select__trigger", className].filter(Boolean).join(" ")}
         onPointerDown={handleTriggerPointerDown}
         onClick={handleTriggerClick}
+        disabled={disabled}
       >
         <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon className="select__icon" aria-hidden>

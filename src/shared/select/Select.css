@@ -47,6 +47,7 @@
 .select__content {
   z-index: 50;
   overflow: hidden;
+  max-height: min(320px, var(--radix-select-content-available-height));
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background-color: #1a1a1a;
@@ -55,6 +56,9 @@
 
 .select__viewport {
   padding: 4px;
+  max-height: min(320px, var(--radix-select-content-available-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .select__item {
