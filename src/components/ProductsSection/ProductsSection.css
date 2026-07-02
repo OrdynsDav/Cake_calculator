@@ -34,7 +34,7 @@
   min-height: 44px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  background-color: var(--color-surface);
+  background-color: var(--color-skeleton);
   overflow: hidden;
 }
 
@@ -45,7 +45,7 @@
   transform: translateX(-100%);
   background: linear-gradient(90deg,
       transparent,
-      rgba(255, 255, 255, 0.08),
+      var(--color-skeleton-shimmer),
       transparent);
   animation: products-section-skeleton 1.3s ease-in-out infinite;
 }

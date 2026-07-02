@@ -5,10 +5,26 @@
 }
 
 :root {
-  --color-background-primary: #000;
-  --color-foreground-primary: #fff;
-  --color-surface: #111;
-  --color-border: rgba(255, 255, 255, 0.2);
+  --color-background-primary: #ffdaed;
+  --color-surface: #fff7fb;
+  --color-surface-elevated: #ffffff;
+  --color-foreground-primary: #4a2442;
+  --color-foreground-muted: rgba(74, 36, 66, 0.68);
+  --color-foreground-subtle: rgba(74, 36, 66, 0.45);
+  --color-text-muted: rgba(74, 36, 66, 0.58);
+  --color-border: rgba(120, 58, 92, 0.22);
+  --color-border-strong: rgba(120, 58, 92, 0.36);
+  --color-accent: #b83a6b;
+  --color-accent-hover: #9f2f5c;
+  --color-accent-active: #87264d;
+  --color-on-accent: #ffffff;
+  --color-overlay: rgba(74, 36, 66, 0.42);
+  --color-highlight: rgba(184, 58, 107, 0.1);
+  --color-highlight-strong: rgba(184, 58, 107, 0.16);
+  --color-shadow: rgba(92, 45, 78, 0.14);
+  --color-skeleton: rgba(184, 58, 107, 0.12);
+  --color-skeleton-shimmer: rgba(184, 58, 107, 0.28);
+  --color-skeleton-shine: rgba(255, 255, 255, 0.55);
 }
 
 body {

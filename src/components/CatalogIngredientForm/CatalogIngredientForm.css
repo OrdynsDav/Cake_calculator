@@ -9,7 +9,7 @@
 }
 
 .catalog-ingredient-form__editing {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-foreground-muted);
   font-size: 14px;
 }
 
@@ -34,7 +34,7 @@
 
 .catalog-ingredient-form__price-separator {
   padding-bottom: 10px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-foreground-muted);
   font-size: 14px;
 }
 

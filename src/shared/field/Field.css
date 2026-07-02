@@ -1,11 +1,11 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .field__label {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--color-foreground-muted);
 }

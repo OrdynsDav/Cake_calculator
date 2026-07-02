@@ -15,7 +15,7 @@
 }
 
 .ingredient-form__editing {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-foreground-muted);
   font-size: 14px;
 }
 
@@ -39,7 +39,7 @@
 
 .ingredient-form__price-hint {
   margin: 0 0 12px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-text-muted);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -53,7 +53,7 @@
 
 .ingredient-form__price-separator {
   padding-bottom: 10px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-foreground-muted);
   font-size: 14px;
 }
 

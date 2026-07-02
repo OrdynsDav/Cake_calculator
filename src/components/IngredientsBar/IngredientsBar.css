@@ -36,7 +36,7 @@
 }
 
 .ingredients-bar__price {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-foreground-muted);
   font-size: 14px;
 }
 
@@ -55,7 +55,7 @@
 
 .ingredients-bar__hint {
   margin: 0;
-  color: var(--color-text-muted, #9ca3af);
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 

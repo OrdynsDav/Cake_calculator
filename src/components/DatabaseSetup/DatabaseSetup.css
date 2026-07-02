@@ -10,7 +10,7 @@
 
 .database-setup__message {
   margin-bottom: 20px;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--color-foreground-muted);
   line-height: 1.5;
 }
 
@@ -30,7 +30,7 @@
 .database-setup__steps code {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-highlight);
 }
 
 @media (width <=520px) {

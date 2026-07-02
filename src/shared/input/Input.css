@@ -4,7 +4,7 @@
   padding: 10px 14px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-elevated);
   color: var(--color-foreground-primary);
   font: inherit;
   font-size: 16px;
@@ -15,16 +15,16 @@
 }
 
 .input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--color-foreground-subtle);
 }
 
 .input:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: var(--color-border-strong);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--color-foreground-primary);
+  border-color: var(--color-accent);
 }
 
 .input:disabled {

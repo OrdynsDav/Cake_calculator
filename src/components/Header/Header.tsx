@@ -10,7 +10,7 @@ export default function Header() {
       <Container>
         <div className="header__wrapper">
           <Link href="/" className="header__brand">
-            <Image src="/logo.jpeg" alt="Логотип" width={80} height={80} />
+            <Image src="/logo.png" alt="Логотип" width={80} height={80} />
             <h1 className="header__title">Калькулятор</h1>
           </Link>
         </div>
