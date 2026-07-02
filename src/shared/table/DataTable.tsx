@@ -31,6 +31,8 @@ function DataTable<T>({
   emptyMessage = "Нет данных",
   footer,
 }: DataTableProps<T>) {
+  // TanStack Table returns unstable function refs; safe to skip React Compiler memoization.
+  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable is intentionally used here
   const table = useReactTable({
     data,
     columns,

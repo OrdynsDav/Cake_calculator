@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import Button from "@/shared/button/Button";
 import Field from "@/shared/field/Field";
 import Input from "@/shared/input/Input";
@@ -9,35 +9,32 @@ import "./ProductOutputForm.css";
 
 export default function ProductOutputForm() {
   const { activeProduct, isSaving, updateActiveProductOutputGrams } = useProducts();
-  const [draftValue, setDraftValue] = useState("");
-
-  useEffect(() => {
-    setDraftValue("");
-  }, [activeProduct?.id]);
 
   if (!activeProduct) return null;
-
-  const currentValue =
-    draftValue === "" ? String(activeProduct.outputGrams) : draftValue;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const outputGrams = Number(draftValue || activeProduct.outputGrams);
+    const outputGrams = Number(
+      new FormData(event.currentTarget).get("outputGrams"),
+    );
     await updateActiveProductOutputGrams(outputGrams);
-    setDraftValue("");
   }
 
   return (
-    <form className="product-output-form" onSubmit={handleSubmit}>
+    <form
+      key={activeProduct.id}
+      className="product-output-form"
+      onSubmit={handleSubmit}
+    >
       <Field label="Выход изделия, г" htmlFor="product-output-grams-current">
         <Input
           id="product-output-grams-current"
+          name="outputGrams"
           type="number"
           min="0.01"
           step="any"
-          value={currentValue}
-          onChange={(event) => setDraftValue(event.target.value)}
+          defaultValue={String(activeProduct.outputGrams)}
           disabled={isSaving}
           required
         />

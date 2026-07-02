@@ -32,24 +32,16 @@ export default function Select({
   disabled = false,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
-  const openRef = useRef(false);
   const ignoreRadixOpenRef = useRef(false);
-
-  openRef.current = open;
 
   const rootProps =
     value !== undefined
       ? { value, onValueChange }
       : { defaultValue, onValueChange };
 
-  function setOpenState(nextOpen: boolean) {
-    openRef.current = nextOpen;
-    setOpen(nextOpen);
-  }
-
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
-      setOpenState(false);
+      setOpen(false);
       return;
     }
 
@@ -58,7 +50,7 @@ export default function Select({
       return;
     }
 
-    setOpenState(true);
+    setOpen(true);
   }
 
   function handleTriggerPointerDown(event: PointerEvent<HTMLButtonElement>) {
@@ -68,7 +60,7 @@ export default function Select({
     event.stopPropagation();
 
     ignoreRadixOpenRef.current = true;
-    setOpenState(!openRef.current);
+    setOpen((current) => !current);
   }
 
   function handleTriggerClick(event: MouseEvent<HTMLButtonElement>) {

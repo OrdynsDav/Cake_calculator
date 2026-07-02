@@ -1,5 +1,6 @@
 import IngredientsPage from "@/components/IngredientsPage/IngredientsPage";
 import DatabaseSetup from "@/components/DatabaseSetup/DatabaseSetup";
+import { getDatabaseErrorMessage } from "@/lib/db-error";
 import { getAllIngredients } from "@/lib/db/ingredients";
 
 export const dynamic = "force-dynamic";
@@ -9,16 +10,18 @@ export const metadata = {
 };
 
 export default async function IngredientsRoute() {
+  let ingredients;
+  let errorMessage: string | null = null;
+
   try {
-    const ingredients = await getAllIngredients();
-
-    return <IngredientsPage initialIngredients={ingredients} />;
+    ingredients = await getAllIngredients();
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Не удалось подключиться к базе данных";
-
-    return <DatabaseSetup message={message} />;
+    errorMessage = getDatabaseErrorMessage(error);
   }
+
+  if (errorMessage) {
+    return <DatabaseSetup message={errorMessage} />;
+  }
+
+  return <IngredientsPage initialIngredients={ingredients!} />;
 }

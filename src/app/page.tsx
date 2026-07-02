@@ -1,29 +1,33 @@
 import Calculator from "@/components/Calculator/Calculator";
 import DatabaseSetup from "@/components/DatabaseSetup/DatabaseSetup";
+import { getDatabaseErrorMessage } from "@/lib/db-error";
 import { getAllIngredients } from "@/lib/db/ingredients";
 import { getAllProducts } from "@/lib/db/products";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  let products;
+  let ingredients;
+  let errorMessage: string | null = null;
+
   try {
-    const [products, ingredients] = await Promise.all([
+    [products, ingredients] = await Promise.all([
       getAllProducts(),
       getAllIngredients(),
     ]);
-
-    return (
-      <Calculator
-        initialProducts={products}
-        initialIngredients={ingredients}
-      />
-    );
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Не удалось подключиться к базе данных";
-
-    return <DatabaseSetup message={message} />;
+    errorMessage = getDatabaseErrorMessage(error);
   }
+
+  if (errorMessage) {
+    return <DatabaseSetup message={errorMessage} />;
+  }
+
+  return (
+    <Calculator
+      initialProducts={products!}
+      initialIngredients={ingredients!}
+    />
+  );
 }

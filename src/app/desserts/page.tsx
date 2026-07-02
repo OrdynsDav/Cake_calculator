@@ -1,5 +1,6 @@
 import DessertsPage from "@/components/DessertsPage/DessertsPage";
 import DatabaseSetup from "@/components/DatabaseSetup/DatabaseSetup";
+import { getDatabaseErrorMessage } from "@/lib/db-error";
 import { getAllDesserts, getAllProducts } from "@/lib/db/products";
 
 export const dynamic = "force-dynamic";
@@ -9,24 +10,27 @@ export const metadata = {
 };
 
 export default async function DessertsRoute() {
+  let desserts;
+  let products;
+  let errorMessage: string | null = null;
+
   try {
-    const [desserts, products] = await Promise.all([
+    [desserts, products] = await Promise.all([
       getAllDesserts(),
       getAllProducts(),
     ]);
-
-    return (
-      <DessertsPage
-        initialDesserts={desserts}
-        availableProducts={products}
-      />
-    );
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Не удалось подключиться к базе данных";
-
-    return <DatabaseSetup message={message} />;
+    errorMessage = getDatabaseErrorMessage(error);
   }
+
+  if (errorMessage) {
+    return <DatabaseSetup message={errorMessage} />;
+  }
+
+  return (
+    <DessertsPage
+      initialDesserts={desserts!}
+      availableProducts={products!}
+    />
+  );
 }

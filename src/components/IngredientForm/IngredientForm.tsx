@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import Button from "@/shared/button/Button";
 import Field from "@/shared/field/Field";
 import Input from "@/shared/input/Input";
@@ -9,7 +16,7 @@ import {
   CUSTOM_CATALOG_OPTION,
   type CatalogIngredient,
 } from "@/types/ingredient";
-import type { Unit } from "@/types/product";
+import type { IngredientItem, Unit } from "@/types/product";
 import { useProducts } from "@/components/ProductsProvider/ProductsProvider";
 import "./IngredientForm.css";
 
@@ -102,28 +109,44 @@ const EMPTY_DEFAULTS: FormDefaults = {
   packageUnit: "кг",
 };
 
-export default function IngredientForm() {
-  const {
+type IngredientFormFieldsProps = {
+  initialCatalogId: string;
+  initialDefaults: FormDefaults;
+  catalogIngredients: CatalogIngredient[];
+  editingItemId: string | null;
+  editingIngredient: IngredientItem | null;
+  isSaving: boolean;
+  onSubmitted: () => void;
+  onCancelEdit: () => void;
+};
+
+const IngredientFormFields = forwardRef<
+  HTMLFormElement,
+  IngredientFormFieldsProps
+>(function IngredientFormFields(
+  {
+    initialCatalogId,
+    initialDefaults,
     catalogIngredients,
     editingItemId,
+    editingIngredient,
     isSaving,
-    addIngredient,
-    updateIngredient,
-    cancelEditing,
-    getEditingIngredient,
-  } = useProducts();
-
+    onSubmitted,
+    onCancelEdit,
+  },
+  ref,
+) {
+  const { addIngredient, updateIngredient } = useProducts();
   const formRef = useRef<HTMLFormElement>(null);
-  const unitRef = useRef<Unit>("г");
-  const packageUnitRef = useRef<Unit>("кг");
-  const catalogIdRef = useRef<string>(CUSTOM_CATALOG_OPTION);
-  const [formResetKey, setFormResetKey] = useState(0);
-  const [selectedCatalogId, setSelectedCatalogId] = useState(
-    CUSTOM_CATALOG_OPTION,
-  );
-  const [formDefaults, setFormDefaults] = useState<FormDefaults>(EMPTY_DEFAULTS);
+  const unitRef = useRef<Unit>(initialDefaults.unit);
+  const packageUnitRef = useRef<Unit>(initialDefaults.packageUnit);
+  const catalogIdRef = useRef<string>(initialCatalogId);
+  const [fieldsResetKey, setFieldsResetKey] = useState(0);
+  const [selectedCatalogId, setSelectedCatalogId] = useState(initialCatalogId);
+  const [formDefaults, setFormDefaults] = useState(initialDefaults);
 
-  const editingIngredient = getEditingIngredient();
+  useImperativeHandle(ref, () => formRef.current as HTMLFormElement);
+
   const isEditing = Boolean(editingIngredient);
 
   const catalogOptions = [
@@ -133,33 +156,6 @@ export default function IngredientForm() {
       label: ingredient.name,
     })),
   ];
-
-  useEffect(() => {
-    if (editingIngredient) {
-      const catalogId =
-        editingIngredient.catalogIngredientId ?? CUSTOM_CATALOG_OPTION;
-      const defaults = getDefaultsFromCompositionItem(editingIngredient);
-
-      catalogIdRef.current = catalogId;
-      unitRef.current = defaults.unit;
-      packageUnitRef.current = defaults.packageUnit;
-      setSelectedCatalogId(catalogId);
-      setFormDefaults(defaults);
-      setFormResetKey((key) => key + 1);
-      return;
-    }
-
-    catalogIdRef.current = CUSTOM_CATALOG_OPTION;
-    unitRef.current = "г";
-    packageUnitRef.current = "кг";
-    setSelectedCatalogId(CUSTOM_CATALOG_OPTION);
-    setFormDefaults(EMPTY_DEFAULTS);
-  }, [editingIngredient, editingItemId]);
-
-  useEffect(() => {
-    if (!isEditing) return;
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [isEditing, editingItemId]);
 
   function handleCatalogChange(catalogId: string) {
     catalogIdRef.current = catalogId;
@@ -171,7 +167,7 @@ export default function IngredientForm() {
         amount: current.amount,
         unit: current.unit,
       }));
-      setFormResetKey((key) => key + 1);
+      setFieldsResetKey((key) => key + 1);
       return;
     }
 
@@ -187,7 +183,7 @@ export default function IngredientForm() {
       unit: current.unit,
     }));
     packageUnitRef.current = catalogIngredient.packageUnit;
-    setFormResetKey((key) => key + 1);
+    setFieldsResetKey((key) => key + 1);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -218,30 +214,13 @@ export default function IngredientForm() {
       await addIngredient(data);
     }
 
-    form.reset();
-    catalogIdRef.current = CUSTOM_CATALOG_OPTION;
-    unitRef.current = "г";
-    packageUnitRef.current = "кг";
-    setSelectedCatalogId(CUSTOM_CATALOG_OPTION);
-    setFormDefaults(EMPTY_DEFAULTS);
-    setFormResetKey((key) => key + 1);
+    onSubmitted();
   }
 
-  function handleCancel() {
-    cancelEditing();
-    catalogIdRef.current = CUSTOM_CATALOG_OPTION;
-    unitRef.current = "г";
-    packageUnitRef.current = "кг";
-    setSelectedCatalogId(CUSTOM_CATALOG_OPTION);
-    setFormDefaults(EMPTY_DEFAULTS);
-    setFormResetKey((key) => key + 1);
-  }
-
-  const formKey = editingItemId ?? `new-${formResetKey}`;
+  const inputsKey = `${selectedCatalogId}-${fieldsResetKey}`;
 
   return (
     <form
-      key={formKey}
       ref={formRef}
       className="ingredient-form"
       onSubmit={handleSubmit}
@@ -264,6 +243,7 @@ export default function IngredientForm() {
 
       <Field label="Ингредиент" htmlFor="ingredient-name">
         <Input
+          key={`name-${inputsKey}`}
           id="ingredient-name"
           name="name"
           placeholder="Мука, сахар, яйца..."
@@ -277,6 +257,7 @@ export default function IngredientForm() {
       <div className="ingredient-form__row">
         <Field label="Количество в рецепте" htmlFor="ingredient-amount">
           <Input
+            key={`amount-${inputsKey}`}
             id="ingredient-amount"
             name="amount"
             type="number"
@@ -291,6 +272,7 @@ export default function IngredientForm() {
 
         <Field label="Ед. изм." htmlFor="ingredient-unit">
           <Select
+            key={`unit-${inputsKey}`}
             id="ingredient-unit"
             defaultValue={formDefaults.unit}
             options={UNIT_OPTIONS}
@@ -312,6 +294,7 @@ export default function IngredientForm() {
         <div className="ingredient-form__price-row">
           <Field label="Цена, ₽" htmlFor="ingredient-package-price">
             <Input
+              key={`package-price-${inputsKey}`}
               id="ingredient-package-price"
               name="packagePrice"
               type="number"
@@ -328,6 +311,7 @@ export default function IngredientForm() {
 
           <Field label="Количество" htmlFor="ingredient-package-amount">
             <Input
+              key={`package-amount-${inputsKey}`}
               id="ingredient-package-amount"
               name="packageAmount"
               type="number"
@@ -342,6 +326,7 @@ export default function IngredientForm() {
 
           <Field label="Ед. изм." htmlFor="ingredient-package-unit">
             <Select
+              key={`package-unit-${inputsKey}`}
               id="ingredient-package-unit"
               defaultValue={formDefaults.packageUnit}
               options={UNIT_OPTIONS}
@@ -368,7 +353,7 @@ export default function IngredientForm() {
           <Button
             type="button"
             variant="outline"
-            onClick={handleCancel}
+            onClick={onCancelEdit}
             disabled={isSaving}
           >
             Отмена
@@ -376,5 +361,62 @@ export default function IngredientForm() {
         )}
       </div>
     </form>
+  );
+});
+
+export default function IngredientForm() {
+  const {
+    catalogIngredients,
+    editingItemId,
+    isSaving,
+    cancelEditing,
+    getEditingIngredient,
+  } = useProducts();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const [formResetKey, setFormResetKey] = useState(0);
+
+  const editingIngredient = getEditingIngredient();
+  const isEditing = Boolean(editingIngredient);
+
+  const formKey = editingItemId ?? `new-${formResetKey}`;
+  const initialSeed = editingIngredient
+    ? {
+      catalogId:
+        editingIngredient.catalogIngredientId ?? CUSTOM_CATALOG_OPTION,
+      defaults: getDefaultsFromCompositionItem(editingIngredient),
+    }
+    : {
+      catalogId: CUSTOM_CATALOG_OPTION,
+      defaults: EMPTY_DEFAULTS,
+    };
+
+  useEffect(() => {
+    if (!isEditing) return;
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [isEditing, editingItemId]);
+
+  function handleSubmitted() {
+    setFormResetKey((key) => key + 1);
+  }
+
+  function handleCancelEdit() {
+    cancelEditing();
+    setFormResetKey((key) => key + 1);
+  }
+
+  return (
+    <IngredientFormFields
+      key={formKey}
+      ref={formRef}
+      initialCatalogId={initialSeed.catalogId}
+      initialDefaults={initialSeed.defaults}
+      catalogIngredients={catalogIngredients}
+      editingItemId={editingItemId}
+      editingIngredient={editingIngredient}
+      isSaving={isSaving}
+      onSubmitted={handleSubmitted}
+      onCancelEdit={handleCancelEdit}
+    />
   );
 }
